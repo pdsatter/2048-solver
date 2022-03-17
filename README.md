@@ -34,10 +34,20 @@ A recursive depth first search function is used.  It finds the best solution, ma
   * Check 1: Checks if there are still numbers that can be combined.  Sorts array and checks if there are 2 numbers that are the same.  If there are 2 numbers that are the same, that means that it COULD be possible to solve it.  However if every number is unique in the puzzle (excluding 0 and 2048), then it is NEVER possible to solve it.
   * Check 2: Checks that rows/ cols can become unique.  A board that looks like figure 1 would be impossible to solve, as it cannot create a unique board. Check 2 waits until at least two moves are made so that the board has a chance to move everything to the sides.  The function will not work as intended if it is checked on move one, due to figure 2 thinking that the rows and cols are the same size.  Figure 3 shows an edge case that is covered in my solution.  It may be possible for a puzzle to BECOME unsolvable, however it can still be possible to solve. (If figure 3 is shifted up, it is unsolvable, however if shfited right it is solvable in 2 moves)
  
- Figure 1:                             Figure 2:                                 Figure 3:
- 2 4 2                                 2 0 0                                     2 0 2
- 0 0 0                                 0 2 0                                     0 4 0
- 0 0 0                                 0 0 0                                     0 0 0
+ Figure 1:  
+ 2 4 2   
+ 0 0 0   
+ 0 0 0   
+ 
+ Figure 2:  
+ 2 0 0  
+ 0 2 0  
+ 0 0 0  
+ 
+ Figure 3:  
+ 2 0 2  
+ 0 4 0  
+ 0 0 0  
 
 ## Possible errors:
 * A row/col of 2048's will act as a wall, and won't pass the unsolvable checks.
