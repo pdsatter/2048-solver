@@ -34,6 +34,8 @@ void printArr(int **arr, int k){
   }
 }
 
+// creates an array from the combined numbers stack.
+// Made for the shift left function
 void addToArrayLeft(Stack &s, int arr[], int start, int end){
   for (int i=start; i<=end; i++){
     if (!s.isempty()) {
@@ -49,6 +51,8 @@ void addToArrayLeft(Stack &s, int arr[], int start, int end){
   }
 }
 
+// creates an array from the combined numbers stack.
+// Made for the shift right function
 void addToArrayRight(Stack &s, int arr[], int start, int end){
   for (int i=end; i>=start; i--){
     if (!s.isempty()) {
@@ -64,6 +68,8 @@ void addToArrayRight(Stack &s, int arr[], int start, int end){
   }
 }
 
+// reveres stack, using 2 other stacks.
+// not most effecient function, more efficient function would use 1 new stack, and set s to equal the new stack
 void reverseStack(Stack &s){
   Stack temp;
   Stack temp2;
@@ -73,6 +79,7 @@ void reverseStack(Stack &s){
     s.push(temp2.pop());}
 }
 
+// prints stack and restores it
 void printStack(Stack& s){
   Stack temp;
   while(!s.isempty()){ 
@@ -82,35 +89,36 @@ void printStack(Stack& s){
 }
 
 // recursive
-// combines numbers if they are same # and no 0's between them
-// Stack may not be the same size (removes some 0's)
+// combines numbers if they are same #
+// 2048 acts as a wall
+// Stack may not be the same size (removes some 0's), this is taken care of in the addToArray(Left/Right) functions.
 void combineNums(Stack &s, bool& merged){
   if (s.isempty()){return;}
-  if (s.peek() == 0){
+  if (s.peek() == 0){ // if first num is 0, recurse
     s.pop(); 
     combineNums(s, merged);
-    s.push(0);
+    s.push(0); // adds 0 back to stack at end of recursive function
   }
   
-  int num = s.pop();
-  while(!s.isempty() && s.peek() == 0) s.pop(); // rem 0
+  int num = s.pop(); // sets first number to be checked for combining
+  while(!s.isempty() && s.peek() == 0) s.pop(); // removes 0 from between numbers. Stack 2 0 0 2 -> 2 2
   if (s.isempty()) { // only 1 value left in stack
-    s.push(num);
-    return;
+    s.push(num); // pushes num back onto stack
+    return; // returns since num was the last (nonzero) number in the stack
   }
-  
-  int num2 = s.pop();
+  // if there's more than 1 num on stack, proceed
+  int num2 = s.pop(); // sets num2, will never be 0 due to while loop above
 
   if (num == num2){ // if nums ==, combine them and make num 2
     num = 2*num;
     num2 = 0;
-    merged = true;
+    merged = true; // sets merged bool
   }
-  else { // if nums don't combine, only remove top temporarily
+  else { // if nums don't combine, add num2 to stack. Num will be added to stack at end of recurision (line 121)
     s.push(num2);
   }
-  combineNums(s, merged); // checks if last run
-  s.push(num); // removed num temporarily,but readds later
+  combineNums(s, merged); // recurse
+  s.push(num); // removed num temporarily, readds to stack here
 }
 
 
@@ -120,26 +128,26 @@ void combineNums(Stack &s, bool& merged){
 // combine
 // shift
 
+// Shifts a row left
 void shiftRowLeft(int arr[], int k, bool& merged){
   // add everything to stack
   Stack s;
   int startpoint = k-1;
   for (int i=k-1; i>=0; i--){
-    if (arr[i]!=2048) s.push(arr[i]);
+    if (arr[i]!=2048) s.push(arr[i]); // adds everything except 2048 to stack
     
     else if (arr[i] == 2048) // combine if 2048 is found
     {
       combineNums(s, merged);
       addToArrayLeft(s, arr, i+1, startpoint); // after 2048->end
-      arr[i] = 2048;
-      startpoint = i-1; 
+      arr[i] = 2048; // keeps 2048 at same location
+      startpoint = i-1; // continues after 2048
       continue;
     }
 
     // combine at max length
     if (i == 0) 
     {  
-      //reverseStack(s);
       combineNums(s, merged); 
       addToArrayLeft(s, arr, i, startpoint);
     }
@@ -151,18 +159,20 @@ void shiftRowLeft(int arr[], int k, bool& merged){
 // add all to stack
 // combine
 // shift
+
+// shifts right
 void shiftRowRight(int arr[], int k, bool& merged){
   Stack s;
   int startpoint = 0;
   for (int i=0; i<k; i++){
-    if (arr[i]!=2048) s.push(arr[i]);
+    if (arr[i]!=2048) s.push(arr[i]); // adds to stack if number is not 2048
     
     else if (arr[i] == 2048) // combine if 2048 is found
     {
-      reverseStack(s);
+      reverseStack(s); // reverses stack (for layout reasons, would be possible to change for loop in other function(s) too, but this is convenient)
       combineNums(s, merged);
-      addToArrayRight(s, arr, startpoint, i-1); //after 2048->end
-      arr[i] = 2048;
+      addToArrayRight(s, arr, startpoint, i-1); // i-1 is num before 2048
+      arr[i] = 2048;  // keeps 2048 at same location
       startpoint = i+1; 
       continue;
     }
@@ -170,7 +180,7 @@ void shiftRowRight(int arr[], int k, bool& merged){
     // combine at max length
     if (i == k-1) 
     {
-      //reverseStack(s);
+      //reverseStack(s); not needed here
       combineNums(s, merged); 
       addToArrayRight(s, arr, startpoint, i);
     }
@@ -257,12 +267,12 @@ int** shiftUp(int **arr, int k, Stack& s, bool& merged){
       newArr[i][j] = arr[i][j];
     }
   }
-  rotateLeft(newArr,k);
+  rotateLeft(newArr,k); // rotates left so you can shift left
 
   for (int i=0; i<k; i++){
     shiftRowLeft(newArr[i], k, merged);
   }
-  rotateRight(newArr,k);
+  rotateRight(newArr,k); // rotates right to restore
   return newArr;
   
 }
@@ -277,11 +287,11 @@ int** shiftDown(int **arr, int k, Stack& s, bool& merged){
     }
   }
   
-  rotateLeft(newArr,k);
+  rotateLeft(newArr,k); // rotate left so you can shift right
   for (int i=0; i<k; i++){
     shiftRowRight(newArr[i], k, merged);
   }
-  rotateRight(newArr, k);
+  rotateRight(newArr, k); // rotate right to restore
   return newArr;
 }
 
@@ -306,6 +316,8 @@ bool solved(int **arr, int k){
   return true;
 }
 
+// sorts array
+// insertion sort
 void sort(int *arr, int k){
   // put max values in front
   int max;
@@ -445,25 +457,25 @@ void findPath(int **arr, int k, std::string& output, Stack& s, int* bestRun, int
 
   // makes it so it doens't go in same direction more than k-1 times
 
-  // checks if it's impossible
+  // checks to see if it merged
   bool mergedUp = false, mergedRight = false;
   bool mergedLeft = false, mergedDown = false;
   
   if ((path != 1 && path!=3) || merged == true){ // wont move same way twice unless merged on last move
-    s.push(1); // up
+    s.push(1); // up, adds to stack to keep track of path
     merged = false; // resets merged
     
     int ** tmpArrUp = new int*[k];
     tmpArrUp = shiftUp(arr, k, s, merged); // shifts tmp arr
     
     findPath(tmpArrUp, k, output, s, bestRun, 1,
-      numRec+1, merged, numRepeats); // rec
+      numRec+1, merged, numRepeats); // recurse
     deleteArr(tmpArrUp, k); // deletes tmp arr to save space
-    s.pop();
-    mergedUp = merged;
+    s.pop(); // removes 1 from stack to keep track of path
+    mergedUp = merged; // checks if it was merged when it shifted up or not
   }
   
-  if ((path != 2 && path!= 4) || merged == true) {
+  if ((path != 2 && path!= 4) || merged == true) { // CHECK ABOVE TO SEE FUNCTIONALITY (LINE 464 - 476)
     s.push(2); // right
     merged = false; // resets merged
     
@@ -480,7 +492,7 @@ void findPath(int **arr, int k, std::string& output, Stack& s, int* bestRun, int
     mergedRight=merged;
   }
  
-  if ((path != 3 && path!=1 ) || merged == true){
+  if ((path != 3 && path!=1 ) || merged == true){ // CHECK ABOVE TO SEE FUNCTIONALITY (LINE 464 - 476)
     s.push(3); // down
     merged = false; // resets merged
     
@@ -496,7 +508,7 @@ void findPath(int **arr, int k, std::string& output, Stack& s, int* bestRun, int
     mergedDown = merged;
   }
   
-  if ((path != 4 && path!=2) || merged == true){
+  if ((path != 4 && path!=2) || merged == true){ // CHECK ABOVE TO SEE FUNCTIONALITY (LINE 464 - 476)
     s.push(4); // left
     merged = false; // resets merged
     
